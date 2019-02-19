@@ -3,6 +3,7 @@ let mouseTimer;
 
 function handleDragStart(e) {
   // Target (this) element is the source node.
+  console.log(e)
   dragSrcEl = this.parentNode;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
@@ -100,10 +101,13 @@ function removeShake(elem){
   elem.classList.remove('shaking')
 }
 
-document.addEventListener("mouseup", mouseUp) //listen for mouse up event on body, not just the element you originally clicked on
+//listen for mouse up event on body, not just the element you originally clicked on
+document.addEventListener("mouseup", mouseUp) 
+document.addEventListener("touchend", mouseUp) 
 
 function dragHandler(elem) {
   elem.addEventListener("mousedown", ()=> mouseDown(elem), false)
+  elem.addEventListener("touchstart", ()=> mouseDown(elem), false)
   elem.addEventListener('dragstart', handleDragStart, false);
   elem.addEventListener('dragenter', handleDragEnter, false)
   elem.addEventListener('dragover', handleDragOver, false);
