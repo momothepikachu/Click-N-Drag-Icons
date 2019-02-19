@@ -1,16 +1,22 @@
-var dragSrcEl = null;
+let dragSrcEl = null;
+let mouseTimer;
 
 function handleDragStart(e) {
   // Target (this) element is the source node.
-  dragSrcEl = this;
+  dragSrcEl = this.parentNode;
   e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/html', this.outerHTML);
+  e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
+  
+  // let crt = this.cloneNode(true);
+  // crt.style.visibility = 'hidden';
+  // e.dataTransfer.setDragImage(crt, 0, 0);
 }
+
 function handleDragOver(e) {
   if (e.preventDefault) {
     e.preventDefault(); // Necessary. Allows us to drop.
   }
-  this.classList.add('dragElem');
+  this.classList.add('dragElem', 'shaking');
 }
 
 function handleDragEnter(e) {
@@ -18,11 +24,11 @@ function handleDragEnter(e) {
   if (e.preventDefault) {
     e.preventDefault(); // Necessary. Allows us to drop.
   }
-  this.classList.add('dragElem');
+  this.classList.add('dragElem', 'shaking');
 }
 
 function handleDragLeave(e) {
-  this.classList.remove('dragElem');  // this / e.target is previous target element.
+  this.classList.remove('dragElem', 'shaking');  // this / e.target is previous target element.
 }
 
 function handleDrop(e) {
@@ -30,41 +36,81 @@ function handleDrop(e) {
   if (e.stopPropagation) {
     e.stopPropagation(); // Stops some browsers from redirecting.
   }
-
+  let thisNode = this.parentNode
   // Don't do anything if dropping the same column we're dragging.
-  if (dragSrcEl != this) {
+  if (dragSrcEl != thisNode) {
     // Set the source column's HTML to the HTML of the column we dropped on.
-    var parent = this.parentNode;
-    var dropIndex = Array.prototype.indexOf.call(parent.children, dragSrcEl);
-    var thisIndex = Array.prototype.indexOf.call(parent.children, this);
+    let parent = thisNode.parentNode;
+    let dropIndex = Array.prototype.indexOf.call(parent.children, dragSrcEl);
+    let thisIndex = Array.prototype.indexOf.call(parent.children, thisNode);
     parent.removeChild(dragSrcEl);
-    var dropHTML = e.dataTransfer.getData('text/html');
+    let dropHTML = e.dataTransfer.getData('text/html');
+    let dropElem;
     if(dropIndex>thisIndex){
-      this.insertAdjacentHTML('beforebegin',dropHTML);
-      var dropElem = this.previousSibling;
-      addDnDHandlers(dropElem);
+      thisNode.insertAdjacentHTML('beforebegin',dropHTML);
+      dropElem = thisNode.previousSibling;
     } else {
-      this.insertAdjacentHTML('afterend',dropHTML);
-      var dropElem = this.nextSibling;
-      addDnDHandlers(dropElem);      
+      thisNode.insertAdjacentHTML('afterend',dropHTML);
+      dropElem = thisNode.nextSibling;
     }
+    let newImg = dropElem.children[0]
+    newImg.classList.remove('dragElem', 'shaking');
+    dragHandler(newImg);
   }
-  this.classList.remove('dragElem');
+  this.classList.remove('dragElem', 'shaking');
 }
 
 function handleDragEnd(e) {
-  this.classList.remove('dragElem');
+  this.classList.remove('dragElem', 'shaking');
 }
 
-function addDnDHandlers(elem) {
+function mouseDown(elem){
+  mouseUp();
+  mouseTimer = setTimeout(()=>execMouseDown(elem), 1000); //set timeout to fire in 1 second when the user presses/touches icon
+}
+
+function mouseUp(){
+  console.log('up!');
+  if(mouseTimer) {clearTimeout(mouseTimer)};
+  let imgs = document.querySelectorAll('img');
+  [].forEach.call(imgs, removeShake);
+  [].forEach.call(imgs, notDraggable);
+}
+
+function execMouseDown(elem){
+  console.log('drag now!');
+  let imgs = document.querySelectorAll('img');
+  [].forEach.call(imgs, draggable);
+  addShake(elem)
+}
+
+function draggable(elem){
+  elem.setAttribute('draggable', true);
+}
+
+function notDraggable(elem){
+  elem.setAttribute('draggable', false);
+}
+
+function addShake(elem){
+  elem.classList.add('shaking')
+}
+
+function removeShake(elem){
+  elem.classList.remove('shaking')
+}
+
+document.addEventListener("mouseup", mouseUp) //listen for mouse up event on body, not just the element you originally clicked on
+
+function dragHandler(elem) {
+  elem.addEventListener("mousedown", ()=> mouseDown(elem), false)
   elem.addEventListener('dragstart', handleDragStart, false);
   elem.addEventListener('dragenter', handleDragEnter, false)
   elem.addEventListener('dragover', handleDragOver, false);
   elem.addEventListener('dragleave', handleDragLeave, false);
   elem.addEventListener('drop', handleDrop, false);
   elem.addEventListener('dragend', handleDragEnd, false);
-
 }
 
-var cols = document.querySelectorAll('#columns .column');
-[].forEach.call(cols, addDnDHandlers);
+let imgs = document.querySelectorAll('img');
+[].forEach.call(imgs, dragHandler);
