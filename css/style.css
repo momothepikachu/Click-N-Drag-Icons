@@ -9,6 +9,12 @@
   -webkit-user-drag: none;
 } */
 
+body {
+  background-image: linear-gradient(to right, rgba(255,0,0,0), rgba(255,0,0,1));
+  background-image: radial-gradient(pink 10%, transparent 15%);
+  background-size: 50px 50px;
+}
+
 .dragElem {
   opacity: 0.3;
 }
