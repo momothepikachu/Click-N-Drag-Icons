@@ -3,7 +3,6 @@ let mouseTimer;
 
 function handleDragStart(e) {
   // Target (this) element is the source node.
-  console.log(e)
   dragSrcEl = this.parentNode;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
@@ -71,18 +70,15 @@ function mouseDown(elem){
 }
 
 function mouseUp(){
-  console.log('up!');
   if(mouseTimer) {clearTimeout(mouseTimer)};
   let imgs = document.querySelectorAll('img');
-  [].forEach.call(imgs, removeShake);
   [].forEach.call(imgs, notDraggable);
 }
 
 function execMouseDown(elem){
-  console.log('drag now!');
   let imgs = document.querySelectorAll('img');
   [].forEach.call(imgs, draggable);
-  addShake(elem)
+  addShake(elem);
 }
 
 function draggable(elem){
@@ -90,15 +86,12 @@ function draggable(elem){
 }
 
 function notDraggable(elem){
+  elem.classList.remove('shaking');
   elem.setAttribute('draggable', false);
 }
 
 function addShake(elem){
   elem.classList.add('shaking')
-}
-
-function removeShake(elem){
-  elem.classList.remove('shaking')
 }
 
 //listen for mouse up event on body, not just the element you originally clicked on
