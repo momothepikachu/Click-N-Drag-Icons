@@ -10,6 +10,7 @@
 } */
 
 body {
+  margin: 0;
   background-image: radial-gradient(pink 10%, transparent 15%);
   background-size: 50px 50px;
 }
