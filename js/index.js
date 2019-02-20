@@ -6,7 +6,6 @@ function handleDragStart(e) {
   dragSrcEl = this.parentNode;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
-  console.log(e)
   // let crt = this.cloneNode(true);
   // crt.style.visibility = 'hidden';
   // e.dataTransfer.setDragImage(crt, 0, 0);
@@ -66,6 +65,7 @@ function handleDragEnd(e) {
 
 function mouseDown(elem){
   mouseUp();
+  elem.addEventListener("mousemove", ()=>{if(mouseTimer) {clearTimeout(mouseTimer)}});
   mouseTimer = setTimeout(()=>execMouseDown(elem), 1000); //set timeout to fire in 1 second when the user presses/touches icon
 }
 
@@ -98,9 +98,10 @@ function addShake(elem){
 document.addEventListener("mouseup", mouseUp) 
 document.addEventListener("touchend", mouseUp) 
 
+
 function dragHandler(elem) {
-  elem.addEventListener("mousedown", ()=> mouseDown(elem), false)
-  elem.addEventListener("touchstart", ()=> mouseDown(elem), false)
+  elem.addEventListener("mousedown", (e)=> mouseDown(elem), false)
+  elem.addEventListener("touchstart", (e)=> mouseDown(elem), false)
   elem.addEventListener('dragstart', handleDragStart, false);
   elem.addEventListener('dragenter', handleDragEnter, false)
   elem.addEventListener('dragover', handleDragOver, false);
