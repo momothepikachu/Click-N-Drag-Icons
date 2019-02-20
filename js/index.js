@@ -6,7 +6,7 @@ function handleDragStart(e) {
   dragSrcEl = this.parentNode;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/html', dragSrcEl.outerHTML);
-  
+  console.log(e)
   // let crt = this.cloneNode(true);
   // crt.style.visibility = 'hidden';
   // e.dataTransfer.setDragImage(crt, 0, 0);
