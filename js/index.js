@@ -1,5 +1,10 @@
 let dragSrcEl = null;
+let dragTarget = null;
 let mouseTimer;
+let touchRange = {}
+let touchXRange;
+let touchYRange;
+
 
 function handleDragStart(e) {
   // Target (this) element is the source node.
@@ -63,19 +68,21 @@ function handleDragEnd(e) {
   this.classList.remove('dragElem', 'shaking');
 }
 
-function mouseDown(elem){
+function mouseDown(e){
   mouseUp();
-  elem.addEventListener("mousemove", ()=>{if(mouseTimer) {clearTimeout(mouseTimer)}});
-  mouseTimer = setTimeout(()=>execMouseDown(elem), 1000); //set timeout to fire in 1 second when the user presses/touches icon
+  this.addEventListener("mousemove", ()=>{if(mouseTimer) {clearTimeout(mouseTimer)}});
+  this.addEventListener("touchcancel", ()=>{if(mouseTimer) {clearTimeout(mouseTimer)}})
+  mouseTimer = setTimeout(()=>execMouseDown(this), 1000); //set timeout to fire in 1 second when the user presses/touches icon
 }
 
-function mouseUp(){
+function mouseUp(e){
   if(mouseTimer) {clearTimeout(mouseTimer)};
   let imgs = document.querySelectorAll('img');
   [].forEach.call(imgs, notDraggable);
 }
 
 function execMouseDown(elem){
+  elem.addEventListener("touchmove", touchMove, false)
   let imgs = document.querySelectorAll('img');
   [].forEach.call(imgs, draggable);
   addShake(elem);
@@ -94,20 +101,93 @@ function addShake(elem){
   elem.classList.add('shaking')
 }
 
+function removeShake(elem){
+  elem.classList.remove('shaking')
+}
+
+function touchMove(e){
+  dragSrcEl = this
+  this.classList.add('abs')
+  let pageX = e.changedTouches[0].pageX-40
+  let pageY = e.changedTouches[0].pageY-40
+  this.style.left = pageX +'px'
+  this.style.top = pageY +'px'
+  for(const i of touchYRange){
+    if(pageY + 80> +i && pageY - 80< +i){
+      touchXRange = Object.keys(touchRange[i]).sort((a,b)=>b-a)
+      for(const j of touchXRange){
+        if(pageX +80 >= +j && pageX - 80 < +j){
+          dragTarget? removeShake(dragTarget) : null;
+          dragSrcEl!==touchRange[i][j]? dragTarget = touchRange[i][j]: null;
+          dragTarget? addShake(dragTarget): null;
+          break;
+        } else {
+          dragTarget? removeShake(dragTarget) : null;
+          dragTarget = null;
+        }
+      } 
+      if(_.inRange(touchYRange[touchYRange.indexOf(i)+1], +i-2, +i+2)){
+        continue;
+      } else {
+        break
+      }
+    } else {
+      dragTarget? removeShake(dragTarget) : null;
+      dragTarget = null;
+    }
+  }
+  
+}
+
+function touchEnd(e){
+  console.log(dragSrcEl, dragTarget)
+  let allCols = document.querySelectorAll('.column')
+  if(dragTarget && dragSrcEl && dragTarget!==dragSrcEl){
+    
+    let dragSrcElDiv = dragSrcEl.parentNode
+    let dragTargetDiv = dragTarget.parentNode
+    let dropIndex = Array.prototype.indexOf.call(allCols, dragSrcElDiv);
+    let thisIndex = Array.prototype.indexOf.call(allCols, dragTargetDiv);
+    let clone1 =  dragSrcElDiv.cloneNode(true);
+    let clone2 = dragTargetDiv.cloneNode(true);
+    allCols[dropIndex].replaceWith(clone2)
+    allCols[thisIndex].replaceWith(clone1)
+    clone1.children[0].removeAttribute('style')
+    clone1.children[0].classList.remove('abs');
+  } else {
+    let dragSrcElDiv = dragSrcEl.parentNode
+    let dropIndex = Array.prototype.indexOf.call(allCols, dragSrcElDiv);
+    let clone1 =  dragSrcElDiv.cloneNode(true);
+    allCols[dropIndex].replaceWith(clone1)
+    clone1.children[0].removeAttribute('style')
+    clone1.children[0].classList.remove('abs');
+    console.log(clone1)
+  }
+  touchRange = {};
+  let imgs = document.querySelectorAll('img');
+  [].forEach.call(imgs, dragHandler);    
+}
+
+
 //listen for mouse up event on body, not just the element you originally clicked on
 document.addEventListener("mouseup", mouseUp) 
 document.addEventListener("touchend", mouseUp) 
 
 
 function dragHandler(elem) {
-  elem.addEventListener("mousedown", (e)=> mouseDown(elem), false)
-  elem.addEventListener("touchstart", (e)=> mouseDown(elem), false)
+  let top = elem.getBoundingClientRect().top;
+  let left = elem.getBoundingClientRect().left;
+  touchRange[top]? touchRange[top][left] = elem : touchRange[top] = {[left]: elem};
+  touchYRange = Object.keys(touchRange).sort((a,b)=>b-a)
+  elem.addEventListener("mousedown", mouseDown, false)
+  elem.addEventListener("touchstart", mouseDown, false)
   elem.addEventListener('dragstart', handleDragStart, false);
   elem.addEventListener('dragenter', handleDragEnter, false)
   elem.addEventListener('dragover', handleDragOver, false);
   elem.addEventListener('dragleave', handleDragLeave, false);
   elem.addEventListener('drop', handleDrop, false);
   elem.addEventListener('dragend', handleDragEnd, false);
+  elem.addEventListener('touchend',touchEnd, false);
 }
 
 let imgs = document.querySelectorAll('img');
